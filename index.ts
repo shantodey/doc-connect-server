@@ -15,23 +15,24 @@ app.get('/', (req: Request, res: Response) => {
 
 
 export async function connectToMongoDB() {
+
     try {
         await client.connect();
         const db = client.db("DocConnect");
         const doctorCollection = db.collection('doctors');
 
+
+
+
+
         // Get all doctors
         app.get("/doctors", async (req: Request, res: Response) => {
             try {
                 const doctors = await doctorCollection.find().toArray();
-
                 res.status(200).json(doctors);
             } catch (error) {
                 console.error(error);
-
-                res.status(500).json({
-                    message: "Failed to fetch doctors",
-                });
+                res.status(500).json({ message: "Failed to fetch doctors" });
             }
         });
 
@@ -52,7 +53,7 @@ export async function disconnectFromMongoDB() {
 
 
 
-
+connectToMongoDB();
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`);
 });
