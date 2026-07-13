@@ -28,13 +28,22 @@ export async function connectToMongoDB() {
         // Get all doctors or search by name && pagiantion
         app.get("/doctors", async (req: Request, res: Response) => {
             try {
-                const { search, page = "1", limit = "8" } = req.query;
+                const { search, page = "1", limit = "8", sort, specialty } = req.query;
                 const p = parseInt(page as string);
                 const l = parseInt(limit as string);
-                const query = search ? { name: { $regex: search as string, $options: "i" } } : {};
+
+                // Filter Build
+                const query: any = {};
+                if (search) query.name = { $regex: search as string, $options: "i" };
+                if (specialty) query.specialization = specialty as string;
+
+                // Sort Build
+                const sortQuery: any = {};
+                if (sort === "price-asc") sortQuery.fee = 1;
+                if (sort === "price-desc") sortQuery.fee = -1;
 
                 const total = await doctorCollection.countDocuments(query);
-                const doctors = await doctorCollection.find(query).skip((p - 1) * l).limit(l).toArray();
+                const doctors = await doctorCollection.find(query).sort(sortQuery).skip((p - 1) * l).limit(l).toArray();
 
                 res.status(200).json({ doctors, totalPages: Math.ceil(total / l) });
             } catch (error) {
