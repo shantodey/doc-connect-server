@@ -23,25 +23,25 @@ export async function connectToMongoDB() {
         const doctorCollection = db.collection('doctors');
 
 
-        // update user info
-        app.put("/user/update", async (req: Request, res: Response) => {
+
+        // Get random doctors
+        app.get("/doctors/random", async (req: Request, res: Response) => {
             try {
-                // ponytail: session checking skips for core update logic, add token verification if middleware isn't present
-                const { id, name, email, image } = req.body;
-                if (!id) return res.status(400).json({ message: "User ID is required" });
+                const { limit = "7" } = req.query;
+                const count = parseInt(limit as string, 10);
+                const doctors = await doctorCollection
+                    .aggregate([{ $sample: { size: count } }])
+                    .toArray();
 
-                const result = await userCollection.updateOne(
-                    { _id: new ObjectId(id) },
-                    { $set: { name, email, ...(image && { image }) } }
-                );
-
-                if (result.matchedCount === 0) return res.status(404).json({ message: "User not found" });
-                res.status(200).json({ success: true, message: "Profile updated successfully" });
+                res.status(200).json(doctors);
             } catch (error) {
                 console.error(error);
-                res.status(500).json({ message: "Failed to update profile" });
+                res.status(500).json({
+                    message: "Failed to fetch random doctors",
+                });
             }
         });
+
 
         // Get all doctors or search by name && pagiantion
         app.get("/doctors", async (req: Request, res: Response) => {
@@ -82,6 +82,25 @@ export async function connectToMongoDB() {
             }
         });
 
+
+        // update user info
+        app.put("/user/update", async (req: Request, res: Response) => {
+            try {
+                const { id, name, email, image } = req.body;
+                if (!id) return res.status(400).json({ message: "User ID is required" });
+
+                const result = await userCollection.updateOne(
+                    { _id: new ObjectId(id) },
+                    { $set: { name, email, ...(image && { image }) } }
+                );
+
+                if (result.matchedCount === 0) return res.status(404).json({ message: "User not found" });
+                res.status(200).json({ success: true, message: "Profile updated successfully" });
+            } catch (error) {
+                console.error(error);
+                res.status(500).json({ message: "Failed to update profile" });
+            }
+        });
         console.log("You successfully connected to MongoDB!");
         return client;
     } catch (err) {
