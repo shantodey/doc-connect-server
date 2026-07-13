@@ -25,10 +25,13 @@ export async function connectToMongoDB() {
 
 
 
-        // Get all doctors
+        // Get all doctors or search by name
         app.get("/doctors", async (req: Request, res: Response) => {
             try {
-                const doctors = await doctorCollection.find().toArray();
+                const { search } = req.query;
+                const query = search ? { name: { $regex: search as string, $options: "i" } } : {};
+
+                const doctors = await doctorCollection.find(query).toArray();
                 res.status(200).json(doctors);
             } catch (error) {
                 console.error(error);
