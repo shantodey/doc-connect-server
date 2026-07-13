@@ -9,7 +9,7 @@ const client = new MongoClient(process.env.MONGODB_URI!);
 app.get('/', (req: Request, res: Response) => {
     res.send('Hello World!');
 });
-
+app.use(express.json());
 
 
 
@@ -19,11 +19,29 @@ export async function connectToMongoDB() {
     try {
         await client.connect();
         const db = client.db("DocConnect");
+        const userCollection = db.collection('user');
         const doctorCollection = db.collection('doctors');
 
 
+        // update user info
+        app.put("/user/update", async (req: Request, res: Response) => {
+            try {
+                // ponytail: session checking skips for core update logic, add token verification if middleware isn't present
+                const { id, name, email, image } = req.body;
+                if (!id) return res.status(400).json({ message: "User ID is required" });
 
+                const result = await userCollection.updateOne(
+                    { _id: new ObjectId(id) },
+                    { $set: { name, email, ...(image && { image }) } }
+                );
 
+                if (result.matchedCount === 0) return res.status(404).json({ message: "User not found" });
+                res.status(200).json({ success: true, message: "Profile updated successfully" });
+            } catch (error) {
+                console.error(error);
+                res.status(500).json({ message: "Failed to update profile" });
+            }
+        });
 
         // Get all doctors or search by name && pagiantion
         app.get("/doctors", async (req: Request, res: Response) => {
