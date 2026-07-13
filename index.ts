@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import { MongoClient } from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb';
 import 'dotenv/config';
 
 const app = express();
@@ -36,6 +36,19 @@ export async function connectToMongoDB() {
             } catch (error) {
                 console.error(error);
                 res.status(500).json({ message: "Failed to fetch doctors" });
+            }
+        });
+
+        // Get Individual Dr 
+        app.get("/doctors/:id", async (req: Request, res: Response) => {
+            try {
+                const id = req.params.id as string;
+                const doctor = await doctorCollection.findOne({ _id: new ObjectId(id) });
+                if (!doctor) return res.status(404).json({ message: "Doctor not found" });
+                res.status(200).json(doctor);
+            } catch (error) {
+                console.error(error);
+                res.status(500).json({ message: "Failed to fetch doctor details" });
             }
         });
 
