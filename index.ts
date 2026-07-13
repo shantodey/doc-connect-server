@@ -25,20 +25,23 @@ export async function connectToMongoDB() {
 
 
 
-        // Get all doctors or search by name
+        // Get all doctors or search by name && pagiantion
         app.get("/doctors", async (req: Request, res: Response) => {
             try {
-                const { search } = req.query;
+                const { search, page = "1", limit = "8" } = req.query;
+                const p = parseInt(page as string);
+                const l = parseInt(limit as string);
                 const query = search ? { name: { $regex: search as string, $options: "i" } } : {};
 
-                const doctors = await doctorCollection.find(query).toArray();
-                res.status(200).json(doctors);
+                const total = await doctorCollection.countDocuments(query);
+                const doctors = await doctorCollection.find(query).skip((p - 1) * l).limit(l).toArray();
+
+                res.status(200).json({ doctors, totalPages: Math.ceil(total / l) });
             } catch (error) {
                 console.error(error);
                 res.status(500).json({ message: "Failed to fetch doctors" });
             }
         });
-
         // Get Individual Dr 
         app.get("/doctors/:id", async (req: Request, res: Response) => {
             try {
