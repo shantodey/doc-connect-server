@@ -150,7 +150,18 @@ export async function connectToMongoDB() {
         });
 
 
-
+        // Cancel/delete an appointment
+        app.delete("/appointments/:id", async (req: Request, res: Response) => {
+            try {
+                const { id } = req.params;
+                const result = await appointmentCollection.deleteOne({ _id: new ObjectId(id) });
+                if (result.deletedCount === 0) return res.status(404).json({ message: "Appointment not found" });
+                res.status(200).json({ message: "Appointment cancelled" });
+            } catch (error) {
+                console.error(error);
+                res.status(500).json({ message: "Failed to cancel appointment" });
+            }
+        });
 
 
 
