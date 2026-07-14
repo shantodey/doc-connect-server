@@ -153,7 +153,7 @@ export async function connectToMongoDB() {
         // Cancel/delete an appointment
         app.delete("/appointments/:id", async (req: Request, res: Response) => {
             try {
-                const { id } = req.params;
+                const { id } = req.params as { id: string };
                 const result = await appointmentCollection.deleteOne({ _id: new ObjectId(id) });
                 if (result.deletedCount === 0) return res.status(404).json({ message: "Appointment not found" });
                 res.status(200).json({ message: "Appointment cancelled" });
@@ -163,6 +163,23 @@ export async function connectToMongoDB() {
             }
         });
 
+
+
+        app.post("/doctors", async (req, res) => {
+            try {
+                const doctor = req.body;
+
+                if (!doctor?.specialization || !doctor?.about) {
+                    return res.status(400).send({ message: "Missing required doctor fields." });
+                }
+
+                const result = await doctorCollection.insertOne(doctor);
+                res.send(result);
+            } catch (error) {
+                console.error("Error adding doctor:", error);
+                res.status(500).send({ message: "Failed to add doctor." });
+            }
+        });
 
 
         console.log("You successfully connected to MongoDB!");
