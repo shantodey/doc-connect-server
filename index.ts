@@ -122,12 +122,32 @@ export async function connectToMongoDB() {
             }
         });
 
+        // get user appointment data
+        app.get("/appointments", async (req: Request, res: Response) => {
+            try {
+                const id = req.params.id as string;
+                const doctor = await appointmentCollection.find({ _id: new ObjectId(id) });
+                if (!doctor) return res.status(404).json({ message: "Doctor not found" });
+                res.status(200).json(doctor);
+            } catch (error) {
+                console.error(error);
+                res.status(500).json({ message: "Failed to fetch doctor details" });
+            }
+        });
 
 
 
-
-
-
+        // Find individual doctor appointment
+        app.get("/appointments/:userid", async (req: Request, res: Response) => {
+            try {
+                const { userid } = req.params;
+                const appointments = await appointmentCollection.find({ userid }).toArray();
+                res.status(200).json(appointments);
+            } catch (error) {
+                console.error(error);
+                res.status(500).json({ message: "Failed to fetch appointments" });
+            }
+        });
 
 
 
