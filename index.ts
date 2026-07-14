@@ -21,6 +21,7 @@ export async function connectToMongoDB() {
         const db = client.db("DocConnect");
         const userCollection = db.collection('user');
         const doctorCollection = db.collection('doctors');
+        const appointmentCollection = db.collection('appointment');
 
 
 
@@ -101,6 +102,38 @@ export async function connectToMongoDB() {
                 res.status(500).json({ message: "Failed to update profile" });
             }
         });
+
+        // Create a new appointment
+        app.post("/appointments", async (req: Request, res: Response) => {
+            try {
+                const bookingData = req.body;
+                if (!bookingData.userEmail || !bookingData.doctorName || !bookingData.date || !bookingData.timeSlot) {
+                    return res.status(400).json({ message: "Missing required fields" });
+                }
+                const result = await appointmentCollection.insertOne({
+                    ...bookingData,
+                    createdAt: new Date()
+                });
+
+                res.status(201).json({ success: true, insertedId: result.insertedId });
+            } catch (error) {
+                console.error(error);
+                res.status(500).json({ message: "Failed to book appointment" });
+            }
+        });
+
+
+
+
+
+
+
+
+
+
+
+
+
         console.log("You successfully connected to MongoDB!");
         return client;
     } catch (err) {
