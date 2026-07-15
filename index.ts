@@ -1,14 +1,12 @@
+import 'dotenv/config';
 import express, { Request, Response } from 'express';
 import { MongoClient, ObjectId } from 'mongodb';
-import 'dotenv/config';
 
 const app = express();
 const port = process.env.PORT;
 const client = new MongoClient(process.env.MONGODB_URI!);
 
-app.get('/', (req: Request, res: Response) => {
-    res.send('Hello World!');
-});
+
 app.use(express.json());
 
 
@@ -242,6 +240,7 @@ export async function connectToMongoDB() {
                 if (result.deletedCount === 0) {
                     return res.status(404).send({ message: "Service not found or you are not authorized to delete this." });
                 }
+
                 res.send({ success: true, message: "Doctor service deleted successfully!" });
             } catch (error) {
                 console.error("Error deleting doctor service:", error);
