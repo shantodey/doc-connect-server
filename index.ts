@@ -15,7 +15,7 @@ app.use(express.json());
 export async function connectToMongoDB() {
 
     try {
-        await client.connect();
+        // await client.connect();
         const db = client.db("DocConnect");
         const userCollection = db.collection('user');
         const doctorCollection = db.collection('doctors');
