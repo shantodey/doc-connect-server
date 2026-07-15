@@ -263,9 +263,9 @@ export async function connectToMongoDB() {
 }
 
 // Call this only when your application terminates
-export async function disconnectFromMongoDB() {
-    await client.close();
-}
+// export async function disconnectFromMongoDB() {
+//     await client.close();
+// }
 
 
 
