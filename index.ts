@@ -164,11 +164,10 @@ export async function connectToMongoDB() {
         });
 
 
-
+        // Adding doctors Services 
         app.post("/doctors", async (req, res) => {
             try {
                 const doctor = req.body;
-
                 if (!doctor?.specialization || !doctor?.about) {
                     return res.status(400).send({ message: "Missing required doctor fields." });
                 }
@@ -180,6 +179,81 @@ export async function connectToMongoDB() {
                 res.status(500).send({ message: "Failed to add doctor." });
             }
         });
+
+
+        // getting doctors Services 
+        app.get("/myservices", async (req, res) => {
+            try {
+                const id = req.query.id as string | undefined;
+                if (!id) {
+                    return res.status(400).send({ message: "Missing id query param." });
+                }
+                const doctors = await doctorCollection.find({ id }).toArray();
+                res.send(doctors);
+            } catch (error) {
+                console.error("Error fetching doctor's services:", error);
+                res.status(500).send({ message: "Failed to fetch services." });
+            }
+        });
+
+
+        // edting doctors Services
+        app.patch("/myservices", async (req, res) => {
+            try {
+                const serviceId = req.query.serviceId as string;
+                const userId = req.query.userId as string;
+                const updatedData = req.body;
+
+                if (!serviceId || !userId) {
+                    return res.status(400).send({ message: "Missing serviceId or userId in query params." });
+                }
+                const { _id, id, ...dataToUpdate } = updatedData;
+                const result = await doctorCollection.updateOne(
+                    {
+                        _id: new ObjectId(serviceId),
+                        id: userId
+                    },
+                    { $set: dataToUpdate }
+                );
+
+                if (result.matchedCount === 0) {
+                    return res.status(404).send({ message: "Service not found or you are not authorized to edit this." });
+                }
+
+                res.send({ success: true, message: "Doctor service updated successfully!" });
+            } catch (error) {
+                console.error("Error updating doctor service:", error);
+                res.status(500).send({ message: "Failed to update doctor service." });
+            }
+        });
+
+        // deleting doctors Services
+        app.delete("/myservices", async (req, res) => {
+            try {
+                const serviceId = req.query.serviceId as string;
+                const userId = req.query.userId as string;
+                if (!serviceId || !userId) {
+                    return res.status(400).send({ message: "Missing serviceId or userId in query params." });
+                }
+                const result = await doctorCollection.deleteOne({
+                    _id: new ObjectId(serviceId),
+                    id: userId
+                });
+                if (result.deletedCount === 0) {
+                    return res.status(404).send({ message: "Service not found or you are not authorized to delete this." });
+                }
+                res.send({ success: true, message: "Doctor service deleted successfully!" });
+            } catch (error) {
+                console.error("Error deleting doctor service:", error);
+                res.status(500).send({ message: "Failed to delete doctor service." });
+            }
+        });
+
+
+
+
+
+
 
 
         console.log("You successfully connected to MongoDB!");
